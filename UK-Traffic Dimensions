@@ -1,0 +1,265 @@
+/* Direction */
+
+IF NOT EXISTS (SELECT TABLE_NAME 
+      FROM UK_Traffic.INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_TYPE = 'BASE TABLE' and TABLE_NAME = 'Direction'
+)
+exec('CREATE TABLE dim.Direction (
+    [k_Direction_of_travel] [int] NOT NULL,
+    [Direction_of_travel] [varchar](1),
+    [Direction_of_travel_full] [varchar](8),
+  
+  CONSTRAINT PK_Direction PRIMARY KEY (k_Direction_of_travel ASC)
+)'
+)
+;
+GO
+
+-------------------------------------------------------------------
+GO
+
+IF NOT EXISTS (SELECT TABLE_NAME 
+      FROM UK_Traffic.INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_TYPE = 'BASE TABLE' and TABLE_NAME = 'dim_Direction'
+)
+exec('CREATE TABLE err.dim_Direction (
+    [k_Direction_of_travel] [int],
+    [Direction_of_travel] [varchar](1),
+    [Direction_of_travel_full] [varchar](8),
+    [Local] [datetime],
+	[UTC] [datetime],
+	[Offset] [int],
+	[ErrorCode] [int],
+	[ErrorColumn] [int]
+)'
+)
+;
+GO
+
+
+----------------------------------------------------------------------------
+SELECT DISTINCT CASE 
+			WHEN Direction_of_travel  = 'N' THEN 100
+			WHEN Direction_of_travel  = 'S' THEN 200
+			WHEN Direction_of_travel  = 'E' THEN 300
+			WHEN Direction_of_travel  = 'W' THEN 400
+			WHEN Direction_of_travel  = 'C' OR Direction_of_travel = 'J' THEN 500
+		END as 'k_Direction_of_travel'
+		, IIF(Direction_of_travel ='J', 'C', Direction_of_travel) as 'Direction_of_travel'
+		, CASE 
+			WHEN Direction_of_travel = 'N' THEN 'North'
+			WHEN Direction_of_travel = 'S' THEN 'South'
+			WHEN Direction_of_travel = 'E' THEN 'East'
+			WHEN Direction_of_travel = 'W' THEN 'West'
+			WHEN Direction_of_travel = 'C' OR Direction_of_travel = 'J' THEN 'Combined'
+		 END as 'Direction_of_travel_full'
+		, GETDATE() as 'Local'
+		, GETUTCDATE() as 'UTC'
+		, DATEDIFF(hh, GETUTCDATE(), GETDATE()) as 'Offset'
+FROM stg.traffic
+GROUP BY Direction_of_travel
+ORDER BY 1
+
+/* Hour of Day */
+
+IF NOT EXISTS (SELECT TABLE_NAME 
+      FROM UK_Traffic.INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_TYPE = 'BASE TABLE' and TABLE_NAME = 'Hour_of_day'
+)
+exec('CREATE TABLE dim.Hour_of_day (
+    [k_hour] [int] NOT NULL,
+    [hour] [int],
+    [Hour_of_day] [varchar](10)
+  
+  CONSTRAINT PK_Hour_of_day PRIMARY KEY (k_hour ASC)
+)'
+)
+;
+GO
+
+-------------------------------------------------------------------
+GO
+
+IF NOT EXISTS (SELECT TABLE_NAME 
+      FROM UK_Traffic.INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_TYPE = 'BASE TABLE' and TABLE_NAME = 'dim_Hour_of_day'
+)
+exec('CREATE TABLE err.dim_Hour_of_day (
+    [k_hour] [int],
+    [hour] [int],
+    [Hour_of_day] [varchar](10),
+	[Local] [datetime],
+	[UTC] [datetime],
+	[Offset] [int],
+	[ErrorCode] [int],
+	[ErrorColumn] [int]
+)'
+)
+;
+GO
+
+
+----------------------------------------------------------------------------
+SELECT [hour] as 'k_hour'
+      ,[hour]
+	  , CASE WHEN [hour] = '0' THEN 'Mid-1am'
+			WHEN [hour] = '1' THEN '1am-2am'
+			WHEN [hour] = '3' THEN '3am-4am'
+			WHEN [hour] = '4' THEN '4am-5am'
+			WHEN [hour] = '5' THEN '5am-6am'
+			WHEN [hour] = '7' THEN '7am-8am'
+			WHEN [hour] = '8' THEN '8am-9am'
+			WHEN [hour] = '9' THEN '9am-10am'
+			WHEN [hour] = '10' THEN '10am-11am'
+			WHEN [hour] = '11' THEN '11am-Noon'
+			WHEN [hour] = '12' THEN 'Noon-1pm'
+			WHEN [hour] = '13' THEN '1pm-2pm'
+			WHEN [hour] = '14' THEN '2pm-3pm'
+			WHEN [hour] = '15' THEN '3pm-4pm'
+			WHEN [hour] = '16' THEN '4pm-5pm'
+			WHEN [hour] = '17' THEN '5pm-6pm'
+			WHEN [hour] = '18' THEN '6pm-7pm'
+		END as 'Hour_of_day'
+		, GETDATE() as 'Local'
+		, GETUTCDATE() as 'UTC'
+		, DATEDIFF(hh, GETUTCDATE(), GETDATE()) as 'Offset'
+FROM stg.traffic
+GROUP BY [hour], [hour]
+ORDER BY 1
+
+/* Local Authority*/
+
+IF NOT EXISTS (SELECT TABLE_NAME 
+      FROM UK_Traffic.INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_TYPE = 'BASE TABLE' and TABLE_NAME = 'Local_Authority'
+)
+exec('CREATE TABLE dim.Local_Authority (
+    [k_Local_authority_id] [int] NOT NULL,
+    [Region_id] [int],
+	[Region_name] [varchar](40),
+    [Region_ons_code] [varchar](9),
+	[Local_authority_id] [int],
+	[Local_authority_name] [varchar](50),
+	[Local_authority_code] [varchar](9)
+	
+  CONSTRAINT PK_Local_Authority PRIMARY KEY (k_Local_authority_id ASC)
+)'
+)
+;
+GO
+
+-------------------------------------------------------------------
+GO
+
+IF NOT EXISTS (SELECT TABLE_NAME 
+      FROM UK_Traffic.INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_TYPE = 'BASE TABLE' and TABLE_NAME = 'dim_Local_Authority'
+)
+exec('CREATE TABLE err.dim_Local_Authority (
+    [k_Local_authority_id] [int],
+    [Region_id] [int],
+	[Region_name] [varchar](40),
+    [Region_ons_code] [varchar](9),
+	[Local_authority_id] [int],
+	[Local_authority_name] [varchar](50),
+	[Local_authority_code] [varchar](9),
+	[Local] [datetime],
+	[UTC] [datetime],
+	[Offset] [int],
+	[ErrorCode] [int],
+	[ErrorColumn] [int]
+)'
+)
+;
+GO
+
+
+----------------------------------------------------------------------------
+SELECT DISTINCT Local_authority_id as 'k_Local_authority_id'
+	  ,[Region_id]
+      ,[Region_name]
+      ,[Region_ons_code]
+      ,[Local_authority_id]
+      ,[Local_authority_name]
+      ,[Local_authority_code]
+	  , GETDATE() as 'Local'
+	  , GETUTCDATE() as 'UTC'
+	  , DATEDIFF(hh, GETUTCDATE(), GETDATE()) as 'Offset'
+FROM stg.traffic
+GROUP BY Local_authority_id
+	  ,[Region_id]
+      ,[Region_name]
+      ,[Region_ons_code]
+      ,[Local_authority_id]
+      ,[Local_authority_name]
+      ,[Local_authority_code]
+ORDER BY 2
+
+
+/* Road Category */
+
+IF NOT EXISTS (SELECT TABLE_NAME 
+      FROM UK_Traffic.INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_TYPE = 'BASE TABLE' and TABLE_NAME = 'Road_Category'
+)
+exec('CREATE TABLE dim.Road_Category (
+    [k_Road_category] [int] NOT NULL,
+    [Road_type] [varchar](5),
+    [Road_category] [varchar](10),
+	[Road_category_decs] [varchar](50)
+  
+  CONSTRAINT PK_Road_Category PRIMARY KEY (k_Road_category ASC)
+)'
+)
+;
+GO
+
+-------------------------------------------------------------------
+GO
+
+IF NOT EXISTS (SELECT TABLE_NAME 
+      FROM UK_Traffic.INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_TYPE = 'BASE TABLE' and TABLE_NAME = 'dim_Road_Category'
+)
+exec('CREATE TABLE err.dim_Road_Category (
+    [k_Road_category] [int],
+    [Road_type] [varchar](5),
+    [Road_category] [varchar](10),
+	[Road_category_decs] [varchar](50),
+	[Local] [datetime],
+	[UTC] [datetime],
+	[Offset] [int],
+	[ErrorCode] [int],
+	[ErrorColumn] [int]
+)'
+)
+;
+GO
+
+
+----------------------------------------------------------------------------
+SELECT DISTINCT CASE
+			WHEN Road_category = 'MB' THEN 1000
+            WHEN Road_category = 'MCU' THEN 2000
+            WHEN Road_category = 'PA' THEN 3000
+            WHEN Road_category = 'PM' THEN 4000
+            WHEN Road_category = 'TA' THEN 5000            
+            WHEN Road_category = 'TM' THEN 6000
+	   END as 'k_Road_category',
+       Road_type,
+       Road_category,
+	   CASE WHEN Road_category = 'PM' THEN 'M or Class A Principal Motorway'
+			WHEN Road_category = 'PA' THEN 'Class A Principal road'
+			WHEN Road_category = 'TM' THEN 'M or Class A Trunk Motorway'
+			WHEN Road_category = 'TA' THEN 'Class A Trunk road'
+			WHEN Road_category = 'MB' THEN 'Class B road '
+			WHEN Road_category = 'MCU' THEN 'Class C road or Unclassified road'
+		END as 'Road_category_decs'
+		, GETDATE() as 'Local'
+		, GETUTCDATE() as 'UTC'
+		, DATEDIFF(hh, GETUTCDATE(), GETDATE()) as 'Offset'
+FROM stg.traffic
+GROUP BY Road_category,
+       Road_type,
+       Road_category
+ORDER BY 1
