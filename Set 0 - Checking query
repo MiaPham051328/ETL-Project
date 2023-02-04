@@ -1,0 +1,74 @@
+/* Set value of all tables back to 0 */
+
+
+ALTER TABLE  [f].[Traffic]
+DROP CONSTRAINT IF EXISTS FK_Direction;
+GO 
+
+ALTER TABLE  [f].[Traffic]
+DROP CONSTRAINT IF EXISTS FK_Local_Authority;
+GO 
+
+ALTER TABLE  [f].[Traffic]
+DROP CONSTRAINT IF EXISTS FK_Road_Category;
+GO 
+
+ALTER TABLE  [f].[Traffic]
+DROP CONSTRAINT IF EXISTS FK_Hour_of_day;
+GO 
+
+
+
+TRUNCATE TABLE f.Traffic;
+
+TRUNCATE TABLE dim.Direction;
+
+TRUNCATE TABLE err.dim_Direction;
+
+TRUNCATE TABLE dim.Hour_of_day;
+
+TRUNCATE TABLE err.dim_Hour_of_day;
+
+TRUNCATE TABLE dim.Local_Authority;
+
+TRUNCATE TABLE err.dim_Local_Authority;
+
+TRUNCATE TABLE dim.Road_Category;
+ 
+TRUNCATE TABLE err.dim_Road_Category;
+
+/* Checking query */
+
+
+SELECT COUNT(*) as TotStg
+FROM stg.traffic;
+
+SELECT COUNT(*) as TotCal
+FROM dim.Calendar;
+
+SELECT COUNT(*) as TotDirection
+FROM dim.Direction;
+
+SELECT COUNT(*) as TotHourofDay
+FROM dim.Hour_of_day;
+
+SELECT COUNT(*) as TotLocAuthority
+FROM dim.Local_Authority;
+
+SELECT COUNT(*) as TotRoadCat
+FROM dim.Road_Category;
+
+SELECT COUNT(*) as errDirection
+FROM err.dim_Direction;
+
+SELECT COUNT(*) as errHourofDay
+FROM err.dim_Hour_of_day;
+
+SELECT COUNT(*) as errLocAuthority
+FROM err.dim_Local_Authority;
+
+SELECT COUNT(*) as errRoadCat
+FROM err.dim_Road_Category;
+
+SELECT COUNT(*) as TotFact
+FROM f.Traffic;
