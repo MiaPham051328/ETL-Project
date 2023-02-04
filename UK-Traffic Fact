@@ -1,0 +1,163 @@
+-- Create f.Traffic
+IF NOT EXISTS (SELECT TABLE_NAME 
+      FROM UK_Traffic.INFORMATION_SCHEMA.TABLES 
+            WHERE TABLE_TYPE = 'BASE TABLE' and TABLE_NAME = 'Traffic'
+)
+exec('CREATE TABLE f.Traffic (
+    [Count_point_id] [int],
+    [kDate] [date],
+    [k_Direction_of_travel] [int],
+	[k_hour] [int],
+	[k_Local_authority_id] [int],
+	[k_Road_category] [int],
+	[Latitude] [varchar](50),
+	[Longitude] [varchar](50),
+	[Pedal_cycles] [int],
+    [Two_wheeled_motor_vehicles] [int],
+    [Cars_and_taxis] [int],
+    [Buses_and_coaches] [int],
+    [LGVs] [int],
+    [HGVs_2_rigid_axle] [int],
+    [HGVs_3_rigid_axle] [int],
+    [HGVs_4_or_more_rigid_axle] [int],
+    [HGVs_3_or_4_articulated_axle] [int],
+    [HGVs_5_articulated_axle] [int],
+    [HGVs_6_articulated_axle] [int]
+)'	
+);
+GO
+
+-- OLE DB Source
+SELECT st.Count_point_id
+	 , cal.kDate
+	 , dr.k_Direction_of_travel
+	 , hd.k_hour
+	 , la.k_Local_authority_id
+	 , rc.k_Road_category
+	 , st.Latitude
+	 , st.Longitude
+	 , ISNULL(st.Pedal_cycles,0) as Pedal_cycles
+	 , ISNULL(st.Two_wheeled_motor_vehicles,0) as Two_wheeled_motor_vehicles
+	 , ISNULL(st.Cars_and_taxis,0) as Cars_and_taxis
+	 , ISNULL(st.Buses_and_coaches,0) as Buses_and_coaches
+	 , ISNULL(st.LGVs,0) as LGVs
+	 , ISNULL(st.HGVs_2_rigid_axle,0) as HGVs_2_rigid_axle
+	 , ISNULL(st.HGVs_3_rigid_axle,0) as HGVs_3_rigid_axle
+	 , ISNULL(st.HGVs_4_or_more_rigid_axle,0) as HGVs_4_or_more_rigid_axle
+	 , ISNULL(st.HGVs_3_or_4_articulated_axle,0) as HGVs_3_or_4_articulated_axle
+	 , ISNULL(st.HGVs_5_articulated_axle,0) as HGVs_5_articulated_axle
+	 , ISNULL(st.HGVs_6_articulated_axle,0) as HGVs_6_articulated_axle 
+FROM stg.traffic st
+INNER JOIN dim.Calendar cal
+ON st.Count_date = cal.[Date]
+LEFT OUTER JOIN dim.Direction dr
+ON st.Direction_of_travel = dr.Direction_of_travel
+LEFT OUTER JOIN dim.Hour_of_day hd
+ON st.[hour] = hd.[hour]
+LEFT OUTER JOIN dim.Local_Authority la
+ON st.Local_authority_id = la.Local_authority_id
+LEFT OUTER JOIN dim.Road_Category rc
+ON st.Road_category = rc.Road_category
+
+
+TRUNCATE TABLE f.Traffic;
+GO
+
+ -- Drop and add foreign keys
+ -- Drop Primary Keys
+
+ALTER TABLE  dim.Direction
+DROP CONSTRAINT IF EXISTS PK_Direction;
+GO 
+
+ALTER TABLE dim.Local_Authority
+DROP CONSTRAINT IF EXISTS PK_Local_Authority;
+GO 
+
+ALTER TABLE  dim.Hour_of_day
+DROP CONSTRAINT IF EXISTS PK_Hour_of_day;
+GO 
+
+ALTER TABLE  dim.Road_Category
+DROP CONSTRAINT IF EXISTS PK_Road_Category;
+GO 
+
+
+ALTER TABLE dim.Calendar
+DROP CONSTRAINT IF EXISTS PK_Calendar;
+GO 
+
+
+-- Adding primary keys into the table
+
+ALTER TABLE dim.Direction
+ADD CONSTRAINT PK_Direction PRIMARY KEY (k_Direction_of_travel);
+GO
+
+ALTER TABLE dim.Local_Authority
+ADD CONSTRAINT PK_Local_Authority PRIMARY KEY (k_Local_authority_id);
+GO
+
+ALTER TABLE dim.Hour_of_day
+ADD CONSTRAINT PK_Hour_of_day PRIMARY KEY (k_hour);
+GO
+
+ALTER TABLE  dim.Road_Category
+ADD CONSTRAINT PK_Road_Category PRIMARY KEY (k_Road_category;
+GO 
+
+ALTER TABLE dim.Calendar
+ADD CONSTRAINT PK_Calendar PRIMARY KEY (kDate);
+GO 
+
+
+-- Drop foreign Keys
+
+GO
+
+ALTER TABLE  [f].[Traffic]
+DROP CONSTRAINT IF EXISTS FK_Calendar;
+GO 
+
+ALTER TABLE  [f].[Traffic]
+DROP CONSTRAINT IF EXISTS FK_Direction;
+GO 
+
+ALTER TABLE  [f].[Traffic]
+DROP CONSTRAINT IF EXISTS FK_Local_Authority;
+GO 
+
+ALTER TABLE  [f].[Traffic]
+DROP CONSTRAINT IF EXISTS FK_Road_Category;
+GO 
+
+ALTER TABLE  [f].[Traffic]
+DROP CONSTRAINT IF EXISTS FK_Hour_of_day;
+GO 
+
+
+-- Set foreign Keys
+
+ALTER TABLE  [f].[Traffic]
+ADD CONSTRAINT FK_Calendar
+FOREIGN KEY (kDate) REFERENCES dim.Calendar([kDate]);
+
+ALTER TABLE  [f].[Traffic]
+ADD CONSTRAINT FK_Direction
+FOREIGN KEY (k_Direction_of_travel) REFERENCES dim.Direction(k_Direction_of_travel);
+
+ALTER TABLE  [f].[Traffic]
+ADD CONSTRAINT FK_Local_Authority
+FOREIGN KEY (k_Local_authority_id) REFERENCES dim.Local_Authority(k_Local_authority_id);
+
+
+ALTER TABLE  [f].[Traffic]
+ADD CONSTRAINT FK_Hour_of_day
+FOREIGN KEY (k_hour) REFERENCES dim.Hour_of_day(k_hour);
+
+
+ALTER TABLE  [f].[Traffic]
+ADD CONSTRAINT FK_Road_Category
+FOREIGN KEY (k_Road_category) REFERENCES dim.Road_Category(k_Road_category);
+
+
